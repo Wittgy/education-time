@@ -166,32 +166,35 @@
             flex-direction: column;
             width: 100%;
         }
-
+    
         .user-list {
             width: 100%;
             border-right: none;
             border-bottom: 2px solid #ddd;
             text-align: center;
         }
-
+    
         .chat-box {
             width: 100%;
         }
-
+    
         form {
             flex-direction: column;
+            align-items: center; /* Input ve butonu ortalar */
+            width: 100%;
         }
-
-        input {
+    
+        input, button {
             width: 80%;
             margin-bottom: 5px;
+            box-sizing: border-box; /* Padding ve border genişliği etkilemesin */
         }
-
+    
         button {
-            width: 80%;
             margin-left: 0;
         }
     }
+    
     </style>
 </body>
 </html>
