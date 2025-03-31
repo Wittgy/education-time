@@ -144,6 +144,54 @@
             padding: 5px 10px;
             margin-left: 5px;
         }
+
+        /* Tablet (Ekran genişliği 1024px veya daha küçükse) */
+    @media (max-width: 1024px) {
+        .chat-container {
+            width: 90%;
+        }
+
+        .user-list {
+            width: 25%;
+        }
+
+        .chat-box {
+            width: 75%;
+        }
+    }
+
+    /* Telefon (Ekran genişliği 600px veya daha küçükse) */
+    @media (max-width: 600px) {
+        .chat-container {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .user-list {
+            width: 100%;
+            border-right: none;
+            border-bottom: 2px solid #ddd;
+            text-align: center;
+        }
+
+        .chat-box {
+            width: 100%;
+        }
+
+        form {
+            flex-direction: column;
+        }
+
+        input {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        button {
+            width: 100%;
+            margin-left: 0;
+        }
+    }
     </style>
 </body>
 </html>
