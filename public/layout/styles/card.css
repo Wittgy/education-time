@@ -1,0 +1,275 @@
+.card_container {
+    display: flex;
+    margin: 15px auto;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+.article_container {
+    margin: 15px 15px 15px 95px; 
+}
+.article-card {
+    width: 300px;
+    height: 170px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    font-family: Arial, Helvetica, sans-serif;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    transition: all 300ms;
+  }
+  
+  .article-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+  }
+  
+  .article-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .article-card .content {
+    box-sizing: border-box;
+    width: 100%;
+    position: absolute;
+    padding: 30px 20px 20px 20px;
+    height: auto;
+    bottom: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
+    pointer-events: none;
+  }
+  
+  .article-card .date,
+  .article-card .title {
+    margin: 0;
+  }
+  
+  .article-card .date {
+    font-size: 12px;
+    color: rgba(176, 224, 247, 0.9);
+    margin-bottom: 4px;
+  }
+  
+  .article-card .title {
+    font-size: 17px;
+    color: rgba(239, 241, 241, 0.9);
+  }
+  
+  /* Video settings */
+
+  .video_container {
+    display: flex;
+    margin: 15px auto;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}   
+
+.videos {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 15px 15px 15px 130px;
+  gap: 25px; /* Yatay ve dikey boşluk ekler */
+}
+
+.video-card {
+  position: relative;
+  display: flex;
+  flex-direction: column; /* Üst üste sıralamak için */
+  align-items: center; /* Ortalamak için */
+  
+  text-align: center;
+}
+
+.video-card a {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.video-card p {
+  position: absolute;
+  top: 80px;
+  border: 1px solid white;
+  padding: 5px 10px;
+  color: rgba(176, 224, 247, 0.9);
+  font-size: 15px;
+  background-color: rgba(0, 0, 0, 0.6); /* Yazıyı görünür yapmak için */
+}
+
+
+.videos a {
+    display: inline-block;
+    margin: 0 15px 30px 0; /* Sağdan ve aşağıdan boşluk bırakır */
+}
+
+.videos p {
+  
+  border: 1px solid white;
+  padding: 5px 10px;
+  color: rgba(176, 224, 247, 0.9);
+  font-size: 15px;
+}
+
+.videos p span {
+  color: rgba(206, 207, 207, 0.9);
+  font-size: 11px;
+
+}
+
+.videos a span {
+  color: rgba(206, 207, 207, 0.9);
+  border: 1px solid white;
+}
+
+/* Login Button style */
+
+.login-btn {
+  background-color: #195064; /* Gunmetal (Önceden hover'dı, şimdi normal renk) */
+  color: #FFFFFF; /* Beyaz */
+  font-size: 12px;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  font-weight: bold;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-left: 321px;
+  letter-spacing: 1.5px;
+  justify-content: center;
+}
+
+.login-btn:hover {
+  background-color: #1F7A8C; /* Teal (Önceden normaldi, şimdi hover rengi) */
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.login-btn:active {
+  background-color: #3ca0c4;
+  transform: scale(0.98);
+}
+
+#login input::placeholder {
+  color: #9ec1cf;
+}
+
+#login input:focus::placeholder {
+  color: transparent;
+}
+
+#login input:focus {
+  outline: none;
+  border:none;
+}
+/* deneme kart */
+.card {
+  position: relative;
+  width: 300px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #f9f9f9;
+  transition: transform 0.3s ease-in-out;
+}
+
+.card:hover {
+  transform: scale(1.05); /* Kartın üzerine gelindiğinde büyüme efekti */
+}
+
+.badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #ff5733;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: 0 0 15px 5px rgba(255, 87, 51, 0.7); /* Ayna benzeri parlama */
+  animation: glow 1.5s ease-in-out infinite alternate; /* Parlama animasyonu */
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 15px 5px rgba(255, 87, 51, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 25px 10px rgba(255, 87, 51, 1);
+  }
+  100% {
+    box-shadow: 0 0 15px 5px rgba(255, 87, 51, 0.7);
+  }
+}
+
+#login fieldset {
+  position: relative;
+}
+
+.second_button {
+  position: absolute;
+  top: 30px;
+  z-index: 1;
+  right: 70px;
+  letter-spacing: 1.5px;
+  display: inline-flex;
+  width: max-content !important;
+  height: 25px;
+  box-sizing: border-box;
+}
+
+.flip_button:hover i {
+  animation: fa-flip 3s infinite linear;
+}
+
+.first_button:hover i {
+  animation: fa-beat 2s infinite linear;
+}
+
+#topnav {
+  letter-spacing: 1px;
+}
+
+.alert-success {
+  font-size: 12px; /* Yazı boyutu */
+  font-weight: bold; /* Kalın yazı */
+  text-align: center; /* Ortalamak için */
+  padding: 10px; /* İç boşluk */
+  border-radius: 5px; /* Kenarları yuvarlat */
+  background-color: #28a745; /* Canlı kırmızı */
+  color: #ffffff; /* Beyaz yazı */
+  border-left: 5px solid #015a15; /* Kenarlık */
+  border-radius: 6px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.5s ease-in-out;
+  margin-left: 400px;
+  position: absolute;
+  margin-top: -10px;
+  margin-left: 590px;
+}
+
+.alert-login {
+  font-size: 12px; /* Yazı boyutu */
+  font-weight: bold; /* Kalın yazı */
+  text-align: center; /* Ortalamak için */
+  padding: 10px; /* İç boşluk */
+  border-radius: 5px; /* Kenarları yuvarlat */
+  background-color: #d72638; /* Canlı kırmızı */
+  color: #ffffff; /* Beyaz yazı */
+  border-left: 5px solid #a71d2a; /* Kenarlık */
+  border-radius: 6px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.5s ease-in-out;
+  margin-left: 400px;
+  position: absolute;
+  margin-top: -10px;
+  margin-left: 590px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

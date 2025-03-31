@@ -1,0 +1,211 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Education Time | Üyelik</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" href="../layout/styles/layout.css" type="text/css" />
+<script type="text/javascript" src="../layout/scripts/jquery.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap');
+/* .wrapperr sınıfını tam ortalar */
+.wrapperr {
+  width: 100%;
+  max-width: 400px;
+  background: #fff;
+  padding: 30px;
+  margin: 20px auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Form başlığı */
+.wrapperr h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #333;
+}
+
+/* Formu ortalamak */
+.wrapperr form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Input kutularını düzenle */
+.input-box {
+  width: 100%;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: center;
+}
+
+.input-box input {
+  width: 90%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  outline: none;
+  transition: 0.3s;
+}
+
+/* Input focus efekti */
+.input-box input:focus {
+  border-color: #1F7A8C;
+  box-shadow: 0 0 8px rgba(105, 188, 255, 0.4);
+}
+
+
+
+/* Kayıt butonu */
+.button input {
+  width: 90%;
+  background: #1F7A8C;
+  color: white;
+  border: none;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+/* Buton hover efekti */
+.button input:hover {
+  background: #1F7A8C;
+}
+.alert-danger {
+  font-size: 12px; /* Yazı boyutu */
+  font-weight: bold; /* Kalın yazı */
+  text-align: center; /* Ortalamak için */
+  padding: 10px; /* İç boşluk */
+  border-radius: 5px; /* Kenarları yuvarlat */
+  background-color: #d72638; /* Canlı kırmızı */
+  color: #ffffff; /* Beyaz yazı */
+  border-left: 5px solid #a71d2a; /* Kenarlık */
+  border-radius: 6px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  margin-top: -9px;
+  margin-bottom: 5px;
+}
+
+
+
+</style>
+</head>
+<body id="top">
+<%- include('partials/_menu.ejs') %>
+<!-- ####################################################################################################### -->
+<div class="wrapper row4">
+  <div class="clear"></div>
+  <div class="wrapperr">
+    <h2>Üye Formu</h2>
+    <form action="/users/register" method="post">
+      <div class="input-box">
+          <input type="text" placeholder="Kullanıcı adınız" name="username" id="username" 
+              value="<%= typeof oldInputs !== 'undefined' ? oldInputs.username : '' %>">
+      </div>
+      <% if (showErrors && showErrors.username) { %>
+          <div class="alert alert-danger"><%= showErrors.username %></div>
+      <% } %>
+  
+      <div class="input-box">
+          <input type="email" placeholder="Email adresiniz" name="email" id="email" 
+              value="<%= typeof oldInputs !== 'undefined' ? oldInputs.email : '' %>">
+      </div>
+      <% if (showErrors && showErrors.email) { %>
+          <div class="alert alert-danger"><%= showErrors.email %></div>
+      <% } %>
+  
+      <div class="input-box">
+          <input type="password" placeholder="Şifre oluştur" name="password" id="password" 
+              value="<%= typeof oldInputs !== 'undefined' ? oldInputs.password : '' %>">
+      </div>
+      <% if (showErrors && showErrors.password) { %>
+          <div class="alert alert-danger"><%= showErrors.password %></div>
+      <% } %>
+  
+      <div class="input-box button">
+          <input type="Submit" value="Kayıt">
+      </div>
+  </form>
+  
+  
+  
+  
+  
+  </div>
+</div> 
+
+
+
+  
+    <!-- ####################################################################################################### -->
+    <div class="clear"></div>
+   <script>
+    const form = document.querySelector("form");
+const emailError = document.querySelector("#emailError");
+const passwordError = document.querySelector("#passwordError");
+const usernameError = document.querySelector("#usernameError");
+
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    // Hata mesajlarını temizle
+    emailError.textContent = "";
+    passwordError.textContent = "";
+    usernameError.textContent = "";
+    emailError.style.display = "none";
+    passwordError.style.display = "none";
+    usernameError.style.display = "none";
+
+    const email = form.email.value;
+    const password = form.password.value;
+    const username = form.username.value;
+
+    try {
+        const res = await fetch("/users/register", {
+            method: "POST",
+            body: JSON.stringify({ email, password, username }),
+            headers: { "Content-Type": "application/json" }
+        });
+
+        const data = await res.json();
+
+        if (data.showErrors) {
+            if (data.showErrors.email) {
+                emailError.textContent = data.showErrors.email;
+                emailError.style.display = "block";
+            }
+            if (data.showErrors.password) {
+                passwordError.textContent = data.showErrors.password;
+                passwordError.style.display = "block";
+            }
+            if (data.showErrors.username) {
+                usernameError.textContent = data.showErrors.username;
+                usernameError.style.display = "block";
+            }
+        } else {
+            // Başarılı kayıt durumunda yönlendirme yap
+            location.assign("/");
+        }
+
+    } catch (err) {
+        console.log("ERR::", err);
+    }
+});
+
+   </script>
+
+<!-- ####################################################################################################### -->
+<%- include('partials/_footer.ejs') %>
+</body>
+</html>

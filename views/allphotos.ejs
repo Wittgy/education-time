@@ -1,0 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Education Time | Fotoğraflar</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" href="../layout/styles/layout.css" type="text/css" />
+<script type="text/javascript" src="../layout/scripts/jquery.min.js"></script>
+<!-- prettyPhoto -->
+<link rel="stylesheet" href="../layout/scripts/prettyphoto/prettyPhoto.css" type="text/css" />
+<script type="text/javascript" src="../layout/scripts/prettyphoto/jquery.prettyPhoto.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $("a[rel^='prettyPhoto']").prettyPhoto({
+        theme: 'dark_rounded',
+        overlay_gallery: false,
+        social_tools: false
+    });
+});
+</script>
+<!-- / prettyPhoto -->
+</head>
+<body id="top">
+<%- include('partials/_menu.ejs') %>
+<!-- ####################################################################################################### -->
+<div class="wrapper row4">
+   <div class="card_container">
+    <% if (photos && photos.length > 0) { %>
+      <% photos.forEach(photo => { %>
+        <div class="article_container">
+          <div class="article-card">
+            <div class="content">
+              <p class="title"><%= photo.name %></p>
+              <p class="date"><%= photo.uploadedAtFormatted %></p>
+            </div>
+            <a href="https://images.unsplash.com/photo-1482877346909-048fb6477632?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=958&q=80" rel="prettyPhoto[gallery2]"><img src="https://images.unsplash.com/photo-1482877346909-048fb6477632?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=958&q=80" alt="article-cover" /></a>
+            
+          </div>
+        </div>
+       <% }) %>
+     <% } else { %>
+        <p>Gösterilecek veri bulunamadı!</p>
+     <% } %>
+   </div>
+
+   <!-- Örnek bir badge veya rozet örneği. Animasyonlu. css dosyası card.css içinde -->
+   <div class="card">
+    <span class="badge">New</span>
+    <img src="image.jpg" alt="Card image">
+    <h2>Card Title</h2>
+    <p>Card content goes here.</p>
+  </div>
+</div> 
+
+
+
+  
+    <!-- ####################################################################################################### -->
+    <div class="clear"></div>
+  
+
+<!-- ####################################################################################################### -->
+<%- include('partials/_footer.ejs') %>
+</body>
+</html>

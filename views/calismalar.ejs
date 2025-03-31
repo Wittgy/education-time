@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Education Time | Çalışmalar</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" href="../layout/styles/layout.css" type="text/css" />
+<script type="text/javascript" src="../layout/scripts/jquery.min.js"></script>
+<!-- prettyPhoto -->
+<link rel="stylesheet" href="../layout/scripts/prettyphoto/prettyPhoto.css" type="text/css" />
+<script type="text/javascript" src="../layout/scripts/prettyphoto/jquery.prettyPhoto.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $("a[rel^='prettyPhoto']").prettyPhoto({
+        theme: 'dark_rounded',
+        overlay_gallery: false,
+        social_tools: false
+    });
+});
+</script>
+<!-- / prettyPhoto -->
+</head>
+<body id="top">
+<%- include('partials/_menu.ejs') %>
+<!-- ####################################################################################################### -->
+<div class="wrapper row4">
+  <div id="container" class="clear"> 
+    <!-- ####################################################################################################### -->
+    <div id="gallery" class="clear">
+      <div class="gallerycontainer clear">
+        <div class="fl_left">
+          <h2 class="title">Yararlı Vİdeolar</h2>
+          <p>Bu bölümde site tasarımı ile ilgili eğitim serilerinin olduğu içerikleri bulabilirsin. Tabii ki bunların çoğu Youtube platformundan. Burada çeşitli konularda detaylı eğitimler bulabilirsin.</p>
+          <p class="readmore"><a href="/calismalar/allvideos">Tüm Videolar &raquo;</a></p>
+        </div>
+        <div class="fl_right">
+          <ul>  
+              <% if (twoVideos && twoVideos.length> 0) { %>
+                <% twoVideos.forEach((video, index)=> { %>
+                  <li class="<%= index === twoVideos.length - 1 ? 'last' : '' %>">
+                    <a href="http://www.youtube.com/watch?v=TIMmp6XWiG0" rel="prettyPhoto[gallery1]">
+                      <img src="../images/demo/video.gif" alt="<%= video.name %>" />
+                    </a>
+                    <div class="p_container">
+                      <p id="photo_name"><%= video.name %></p>
+                      
+                      <br>
+                      <p class="date-container"><span class="photo-date"><%= video.uploadedAtFormatted %></span></p>
+                    </div>
+                  </li>
+                  <% }) %>
+              <% } else { %>
+                 <p>Henüz eklenmiş fotoğraf yok.</p>
+              <% } %>
+           </ul>
+        </div>
+      </div>
+      <!-- ########### -->
+      <div class="gallerycontainer clear">
+        <div class="fl_left">
+          <h2 class="title">Son Tasarımlar</h2>
+          <p>Zamanla öğrendiklerimi uygulayarak bazı minimalist çalışmalar ortaya çıkardım. Öğrenirken üretmenin verdiği hazla yaptığım çalışmalara buradan ulaşabilirsin. Ayrıca son iki çalışmanın görsellerini yan tarafta görebilirsin. </p>
+          <p class="readmore"><a href="/calismalar/allphotos">Tüm Çalışmalar &raquo;</a></p>
+        </div>
+        <div class="fl_right">
+          <ul>
+            <ul>
+              <% if (photos && photos.length > 0) { %>
+                  <% photos.forEach((photo, index) => { %>
+                      <li class="<%= index === photos.length - 1 ? 'last' : '' %>">
+                          <a href="../images/demo/440x215.gif" rel="prettyPhoto[gallery2]" title="<%= photo.name %>">
+                              <img src="../images/demo/310x165.gif" alt="<%= photo.name %>" />
+                          </a>
+                          <div class="p_container">
+                            <p id="photo_name"><%= photo.name %></p>
+                            
+                            <br>
+                            <p class="date-container"><span class="photo-date"><%= photo.uploadedAtFormatted %></span></p>
+                          </div>
+                      </li>
+                  <% }) %>
+              <% } else { %>
+                  <p>Henüz eklenmiş fotoğraf yok.</p>
+              <% } %>
+          </ul>
+          
+          </ul>
+        </div>
+      </div>
+      <!-- ########### --> 
+    </div>
+    <!-- ####################################################################################################### -->
+    <div class="pagination">
+      <ul>
+        <li class="prev"><a href="#">&laquo; Önceki</a></li>
+        <li><a href="#">1</a></li>
+        <li><a href="#">2</a></li>
+        <li class="splitter">&hellip;</li>
+        <li><a href="#">6</a></li>
+        <li class="current">7</li>
+        <li><a href="#">8</a></li>
+        <li><a href="#">9</a></li>
+        <li class="splitter">&hellip;</li>
+        <li><a href="#">14</a></li>
+        <li><a href="#">15</a></li>
+        <li class="next"><a href="#">Sonraki &raquo;</a></li>
+      </ul>
+    </div>
+    <!-- ####################################################################################################### -->
+    <div class="clear"></div>
+  </div>
+</div>
+<!-- ####################################################################################################### -->
+<%- include('partials/_footer.ejs') %>
+</body>
+</html>
+

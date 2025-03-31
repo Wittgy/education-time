@@ -1,0 +1,78 @@
+<div class="wrapper row5">
+    <div id="footer" class="clear"> 
+      <!-- ####################################################################################################### -->
+      <div class="foot_contact">
+        <h2>Tasarım Atlası || İletişim</h2>
+        <address>
+        İstanbul /  Türkiye
+        </address>
+        <ul>
+          <li class="last"><strong>Email:</strong> <a href="#">burakadu@gmail.com</a></li>
+        </ul>
+      </div>
+      <div class="footbox">
+        <h2>Atölye</h2>
+        <ul>
+          <li><a href="#">Dış Bağlantılar</a></li>
+          <li><a href="#">Erişim</a></li>
+          <li><a href="#">Kurslar</a></li>
+          
+        </ul>
+      </div>
+      <div class="footbox">
+        <h2>Yararlı Lİnkler</h2>
+        <ul>
+          <li><a href="#">HTML 5</a></li>
+          <li><a href="#">CSS Dersleri</a></li>
+          <li><a href="#">Node.js Dersleri</a></li>
+          
+        </ul>
+      </div>
+      <div class="footbox last">
+        <h2>Ders Vİdeoları</h2>
+        <ul>
+          <li><a href="#">Dersler</a></li>
+          <li><a href="#">Projeler</a></li>
+          <li><a href="#">Python Hakkında</a></li>
+        </ul>
+      </div>
+      <!-- ####################################################################################################### --> 
+    </div>
+  </div>
+  <!-- ####################################################################################################### -->
+  <div class="wrapper">
+    <div id="copyright" class="clear">
+      <p class="fl_left">Copyright &copy; 2025 - All Rights Reserved  
+      <p class="fl_right">Template by <a target="_blank" href="#">Arthur</a></p>
+    </div>
+  </div>
+ <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const menuLinks = document.querySelectorAll("#topnav > ul > li > a"); 
+
+    menuLinks.forEach(link => {
+        link.addEventListener("click", function (event) {
+            // Sayfa yönlendirmesini engelle (Eğer SPA mantığıyla çalışıyorsan)
+            event.preventDefault();
+
+            // Önceki aktif öğeyi bul ve kaldır
+            document.querySelector("#topnav li.active")?.classList.remove("active");
+
+            // Tıklanan linkin ebeveyn <li> öğesine active sınıfını ekle
+            this.parentElement.classList.add("active");
+
+            // Yeni sayfaya git (Eğer yönlendirmeyi istiyorsan)
+            window.location.href = this.href;
+        });
+    });
+
+    // Sayfa yüklendiğinde aktif sayfa için active ekleyelim
+    const currentPath = window.location.pathname;
+    menuLinks.forEach(link => {
+        if (link.getAttribute("href") === currentPath) {
+            link.parentElement.classList.add("active");
+        }
+    });
+});
+
+ </script>

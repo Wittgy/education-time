@@ -1,0 +1,75 @@
+<div class="wrapper row1">
+    <div id="header" class="clear">
+      <div class="fl_left">
+        <h1><a href="/">Tasarım Atlası</a></h1>
+        <p>Hayal gücünden gerçeğe...</p>
+        <% if (typeof error !== "undefined" && error) { %>
+          <div class="alert alert-login alert-danger"><%= error %></div>
+      <% } else if (typeof message !== "undefined" && message) { %>
+          <div class="alert  alert-success"><%= message %></div>
+      <% } %>
+      
+      </div>
+      <% if (!user) { %>
+        <form action="/users/login" method="post" id="login">
+            <fieldset>
+                <legend>Login</legend>
+    
+                            
+                <input placeholder="Şifreniz" type="password" name="password"/>
+                <input placeholder="Kullanıcı isminiz" type="text" name="username"
+                       value="<%= typeof oldInputs !== 'undefined' ? oldInputs.username : '' %>"/>
+    
+                
+    
+                <button class="login-btn" type="submit">Giriş</button>
+                <button type="button" class="login-btn second_button" onclick="window.location.href='/users/register'">Üye ol</button>
+            </fieldset>
+        </form>
+    <% } else { %>
+        <button class="login-btn second_button first_button" style="width: 70px; margin-right: 50px;" onclick="window.location.href='/users/logout'">Çıkış&nbsp;<i class="fa-solid fa-lock"></i></button>
+        <button class="login-btn second_button flip_button" style="width: 80px; margin-top: 30px; margin-right: 40px;"><%= user.username %>&nbsp;<i class="fa-solid fa-user"></i></button>
+    <% } %>
+    
+    </div>
+  </div>
+  <!-- ####################################################################################################### -->
+  <div class="wrapper row2">
+    <div id="topnav">
+      <ul>
+        <li><a href="/">Anasayfa</a></li>
+        <li><a href="/guncel-yazilar">Güncel Yazılar</a></li>
+        <li><a href="/hakkimda">Hakkımda</a></li>
+        <% if (user) { %>
+        <li><a href="">Atölye</a>
+          <ul>
+            <li><a href="#">Dökümantasyon</a></li>
+            <li><a href="#">Kurulumlar</a></li>
+            <li><a href="#">Tasarım</a></li>
+          </ul>
+        </li>
+        <% } %>
+        <li><a href="/kategoriler">Kategorİler</a></li>
+        <li><a href="/calismalar">Çalışmalar</a></li>
+        <% if (user) { %>
+          <li class="last"><a href="/users/dashboard" class="active" style="color:dodgerblue; font-weight:bold">Dashboard</a></li>
+          <% } %>
+      </ul>
+      <div  class="clear"></div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const alertBox = document.querySelector(".alert-login, .alert-success");
+  
+      if (alertBox) {
+        setTimeout(() => {
+          alertBox.style.transition = "opacity 0.5s ease";
+          alertBox.style.opacity = "0";
+          setTimeout(() => alertBox.remove(), 500); // Opaklık 0 olduktan sonra DOM'dan kaldır
+        }, 5000); // 5 saniye (5000ms) sonra çalıştır
+      }
+    });
+  </script>
+  
+  

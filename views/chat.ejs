@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Uygulaması</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const socket = io();
+            let username;
+    
+            // Kullanıcıdan adını iste
+            while (!username || username.trim() === "") {
+                username = prompt("Lütfen bir kullanıcı adı girin:");
+            }
+            
+            socket.emit("new user", username); // Kullanıcıyı sunucuya bildir
+    
+            const messageForm = document.getElementById("chatForm");
+            const messageInput = document.getElementById("msgInput");
+            const messageList = document.getElementById("messages");
+            const userList = document.getElementById("userList");
+            const typingIndicator = document.getElementById("typingIndicator");
+    
+            messageForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                let msg = messageInput.value.trim();
+                if (msg) {
+                    socket.emit("chat message", { message: msg });
+                    messageInput.value = "";
+                    socket.emit("stop typing"); 
+                }
+            });
+    
+            messageInput.addEventListener("input", () => {
+                if (messageInput.value.trim() !== "") {
+                    socket.emit("typing"); 
+                } else {
+                    socket.emit("stop typing"); 
+                }
+            });
+    
+            // ✨ Gelen mesajları ekrana yazdır
+            socket.on("chat message", (data) => {
+                let li = document.createElement("li");
+                li.innerHTML = `<strong>${data.user}:</strong> ${data.message}`;
+                messageList.appendChild(li);
+            });
+    
+            // ✨ "Yazıyor..." mesajını göster
+            socket.on("typing", (user) => {
+                typingIndicator.innerText = `${user} yazıyor...`;
+            });
+    
+            // ✨ "Yazıyor..." mesajını kaldır
+            socket.on("stop typing", () => {
+                typingIndicator.innerText = "";
+            });
+    
+            // ✨ Kullanıcı listesini güncelle
+            socket.on("user list", (users) => {
+                userList.innerHTML = "";
+                users.forEach(user => {
+                    let li = document.createElement("li");
+                    li.textContent = user;
+                    userList.appendChild(li);
+                });
+            });
+        });
+    </script>
+    
+    
+    
+</head>
+<body>
+    <h1>Online Chat</h1>
+
+    <div class="chat-container">
+        <div class="user-list">
+            <h3>Online Kullanıcılar</h3>
+            <ul id="userList"></ul>
+
+            <p id="typingIndicator" style="font-style: italic; color: gray;"></p>
+
+        </div>
+        
+        <div class="chat-box">
+            <ul id="messages"></ul>
+            <p id="typingIndicator" style="font-style: italic; color: gray;"></p>
+            <form id="chatForm">
+                <input id="msgInput" autocomplete="off">
+                <button type="submit">Gönder</button>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .chat-container {
+            display: flex;
+            width: 80%;
+            margin-top: 20px;
+        }
+
+        .user-list {
+            width: 20%;
+            padding: 10px;
+            border-right: 2px solid #ddd;
+        }
+
+        .chat-box {
+            width: 80%;
+            padding: 10px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        form {
+            display: flex;
+            margin-top: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 5px;
+        }
+
+        button {
+            padding: 5px 10px;
+            margin-left: 5px;
+        }
+    </style>
+</body>
+</html>
