@@ -162,6 +162,10 @@
             50% { opacity: 0.5; }
             100% { opacity: 1; }
         }
+        .file-message:hover { background-color: #f8f9fa !important; }
+        #filePreview { max-width: 100%; }
+        video::-webkit-media-controls { border-radius: 0 0 8px 8px; }
+        .file-preview-container { max-width: 200px; }
         
         /* Custom scrollbar */
         ::-webkit-scrollbar {
@@ -200,39 +204,49 @@
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="chat-container d-flex">
-                <div class="user-list col-md-4 p-0">
-                    <div class="p-3 bg-primary text-white d-flex justify-content-between">
-                        <h5 class="mb-0">Üyeler</h5>
-                        <span id="onlineCount" class="badge bg-light text-dark">0</span>
-                    </div>
-                    <div id="userList"></div>
-                </div>
-                
-                <div class="chat-area col-md-8 p-0 d-flex flex-column">
-                    <div class="p-3 bg-primary text-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0" id="chatTitle">Genel Sohbet</h5>
-                        <div class="typing-indicator" id="typingIndicator"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="chat-container d-flex">
+                    <!-- Kullanıcı listesi aynı kaldı -->
+                    <div class="user-list col-md-4 p-0">
+                        <div class="p-3 bg-primary text-white d-flex justify-content-between">
+                            <h5 class="mb-0">Üyeler</h5>
+                            <span id="onlineCount" class="badge bg-light text-dark">0</span>
+                        </div>
+                        <div id="userList"></div>
                     </div>
                     
-                    <div class="messages" id="messages"></div>
-                    
-                    <div class="message-input">
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="messageInput" placeholder="Bir mesaj yazın...">
-                            <button class="btn btn-primary" id="sendButton">
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
+                    <!-- Sohbet alanı -->
+                    <div class="chat-area col-md-8 p-0 d-flex flex-column">
+                        <div class="p-3 bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0" id="chatTitle">Genel Sohbet</h5>
+                            <div class="typing-indicator" id="typingIndicator"></div>
+                        </div>
+                        
+                        <div class="messages" id="messages"></div>
+                        
+                        <!-- DOSYA YÜKLEME EKLENTİSİ (Değişen tek kısım) -->
+                        <div class="message-input">
+                            <form id="messageForm" enctype="multipart/form-data">
+                                <input type="file" id="fileInput" accept="image/*,video/*,.pdf,.gif" hidden>
+                                <div class="input-group">
+                                    <button type="button" id="attachBtn" class="btn btn-secondary">
+                                        <i class="fas fa-paperclip"></i>
+                                    </button>
+                                    <input type="text" class="form-control" id="messageInput" placeholder="Bir mesaj yazın...">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </form>
+                            <div id="filePreview" class="mt-2"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
@@ -279,18 +293,86 @@ $(document).ready(function() {
         }, 30000);
     }
 
-    // Mesaj gönderme
-    function sendMessage() {
-        const message = $('#messageInput').val().trim();
-        if (message !== '' && isConnected) {
-            socket.emit('chat message', { 
-                message: message,
-                timestamp: new Date().toISOString()
+    // DOSYA YÜKLEME FONKSİYONU (Yeni eklendi)
+    async function uploadFile(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
             });
-            $('#messageInput').val('');
-            socket.emit('stop typing');
+            return await response.json();
+        } catch (err) {
+            console.error('Yükleme hatası:', err);
+            return null;
         }
     }
+
+    // MESAJ GÖNDERME (Güncellendi)
+    async function sendMessage() {
+        const message = $('#messageInput').val().trim();
+        const fileInput = $('#fileInput')[0];
+        
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            
+            // Dosya boyut kontrolü (50MB)
+            if (file.size > 50 * 1024 * 1024) {
+                alert('Dosya boyutu 50MB\'ı aşamaz!');
+                return;
+            }
+            
+            const { url, type } = await uploadFile(file);
+            if (url) {
+                socket.emit('chat message', {
+                    message,
+                    file: { url, type },
+                    timestamp: new Date().toISOString()
+                });
+                $('#fileInput').val('');
+                $('#filePreview').empty();
+            }
+        } else if (message) {
+            socket.emit('chat message', { 
+                message,
+                timestamp: new Date().toISOString()
+            });
+        }
+        
+        $('#messageInput').val('');
+        socket.emit('stop typing');
+    }
+
+    // DOSYA ÖNİZLEME (Yeni eklendi)
+    $('#attachBtn').click(() => $('#fileInput').click());
+    
+    $('#fileInput').change(function() {
+        const file = this.files[0];
+        if (!file) return;
+        
+        const preview = `
+            <div class="alert alert-light d-flex justify-content-between align-items-center p-2">
+                <div>
+                    <i class="fas fa-${file.type.includes('image') ? 'image' : 
+                                    file.type.includes('video') ? 'video' : 'file'} me-2"></i>
+                    ${file.name} (${(file.size / 1024).toFixed(1)}KB)
+                </div>
+                <button class="btn btn-sm btn-danger" id="removeFile">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        $('#filePreview').html(preview);
+    });
+
+    $(document).on('click', '#removeFile', () => {
+        $('#fileInput').val('');
+        $('#filePreview').empty();
+    });
+
+
 
     // Yazma durumu
     let typing = false;
@@ -311,9 +393,14 @@ $(document).ready(function() {
         }, 2000);
     });
 
+    $('#messageForm').submit(function(e) {
+        e.preventDefault();
+        sendMessage();
+    });
     // Enter tuşu ile gönder
     $('#messageInput').keypress(function(e) {
         if (e.which === 13) {
+            e.preventDefault();
             sendMessage();
         }
     });
@@ -356,11 +443,38 @@ $(document).ready(function() {
         }, 300);
       });
 
-    socket.on('chat message', function(data) {
-        console.log('Gelen mesaj:', data);
-        addMessage(data.username, data.message, data.username === username, data.timestamp, data.color);
+     // MESAJ ALMA (Güncellendi)
+     socket.on('chat message', (data) => {
+        let content = '';
+        
+        if (data.file) {
+            if (data.file.type === 'image') {
+                content = `<img src="${data.file.url}" class="img-fluid rounded mb-2" style="max-height: 200px;">`;
+            } else if (data.file.type === 'video') {
+                content = `
+                    <video controls class="rounded mb-2" style="max-height: 200px; max-width: 100%;">
+                        <source src="${data.file.url}" type="video/mp4">
+                    </video>
+                `;
+            } else {
+                content = `
+                    <div class="file-message bg-light p-2 rounded mb-2">
+                        <a href="${data.file.url}" target="_blank" class="text-decoration-none">
+                            <i class="fas fa-file-download me-2"></i>Dosyayı indir
+                        </a>
+                    </div>
+                `;
+            }
+        }
+        
+        if (data.message) {
+            content += `<div class="message-text">${data.message}</div>`;
+        }
+
+        addMessage(data.username, content, data.userId === socket.id, data.timestamp, data.color);
         $('#typingIndicator').text('');
     });
+
 
     socket.on('typing', function(typingUser) {
         if (typingUser !== username) {
@@ -381,8 +495,8 @@ $(document).ready(function() {
         addSystemMessage('Sunucuya bağlanılamıyor. Lütfen sayfayı yenileyin...', 'error');
     });
 
-    // Mesaj ekleme fonksiyonları
-    function addMessage(sender, message, isSent, timestamp, color) {
+     // Mesaj ekleme fonksiyonu (Güncellendi)
+     function addMessage(sender, content, isSent, timestamp, color) {
         const time = timestamp ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 
                                 new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         
@@ -392,13 +506,14 @@ $(document).ready(function() {
         $('#messages').append(`
             <div class="message ${messageClass}" style="background-color: ${messageColor}">
                 <div class="message-sender">${sender}</div>
-                <div class="message-content">${message}</div>
+                ${content}
                 <div class="message-time">${time}</div>
             </div>
         `);
         
         scrollToBottom();
     }
+    
 
     function addSystemMessage(text, type) {
         $('#messages').append(`

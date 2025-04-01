@@ -10,16 +10,46 @@ import userRoutes from "./routes/userRoutes.js";
 import { checkUser } from "./middlewares/authMddleware.js";
 import http from "http";
 import { Server } from "socket.io";
+import multer from "multer";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 
 dotenv.config();
 
 // Veritabanı bağlantısı
 conn();
 
+// Cloudinary konfigürasyonu
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true
+});
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Cloudinary storage engine
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'chat_app_uploads',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'mp4', 'pdf'],
+    resource_type: 'auto',
+    transformation: [
+      { width: 800, height: 800, crop: 'limit' },
+      { quality: 'auto' }
+    ]
+  }
+});
+
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+});
 
 // HTTP sunucusu ve Socket.io oluşturma
 const server = http.createServer(app);
@@ -59,16 +89,25 @@ const generateUserColor = (username) => {
   return colors[Math.abs(hash) % colors.length];
 };
 
+// Dosya yükleme endpoint'i
+app.post('/upload', upload.single('file'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Dosya yüklenemedi' });
+  }
+  res.json({
+    url: req.file.path,
+    type: req.file.resource_type,
+    publicId: req.file.filename
+  });
+});
+
 // Socket.io Bağlantı Yönetimi
 io.on('connection', (socket) => {
   console.log(`Yeni bağlantı: ${socket.id}`);
 
-  // YENI EKLENEN KISIM (Başlangıç)
   socket.on('get user list', () => {
-    console.log('Kullanıcı listesi talep edildi');
     socket.emit('user list', Array.from(activeUsers.values()));
   });
-  // YENI EKLENEN KISIM (Bitiş)
 
   socket.on('new user', (username) => {
     if (!username || typeof username !== 'string') {
@@ -86,10 +125,8 @@ io.on('connection', (socket) => {
       color: generateUserColor(cleanUsername)
     });
 
-    // Tüm kullanıcı listesini güncelle
     io.emit('user list', Array.from(activeUsers.values()));
 
-    // Hoş geldin mesajı
     const welcomeMessages = [
       `🌟 ${cleanUsername} sohbete katıldı!`,
       `🚀 ${cleanUsername} aramıza geldi!`,
@@ -103,31 +140,37 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Mesaj İletimi (DÜZELTİLDİ)
   socket.on('chat message', (data) => {
     const user = activeUsers.get(socket.id);
-    if (!user || !data?.message) return;
+    if (!user) return;
 
-    const cleanMessage = sanitizeInput(data.message.toString().trim());
-    if (!cleanMessage) return;
-
-    // Tüm istemcilere mesajı ilet (io.emit kullanıyoruz)
-    io.emit('chat message', {
+    const messageData = {
       userId: user.id,
       username: user.username,
-      message: cleanMessage,
       timestamp: new Date().toISOString(),
       color: user.color
-    });
+    };
 
-    // Yazma durumunu sıfırla
+    if (data.message) {
+      messageData.message = sanitizeInput(data.message.toString().trim());
+    }
+
+    if (data.file) {
+      messageData.file = {
+        url: data.file.url,
+        type: data.file.type,
+        publicId: data.file.publicId
+      };
+    }
+
+    io.emit('chat message', messageData);
+
     if (user.typing) {
       user.typing = false;
       socket.broadcast.emit('stop typing', user.username);
     }
   });
 
-  // Diğer olaylar...
   socket.on('typing', () => {
     const user = activeUsers.get(socket.id);
     if (user && !user.typing) {
