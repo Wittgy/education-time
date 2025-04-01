@@ -25,9 +25,13 @@ const __dirname = path.dirname(__filename);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // Güvenlik için production'da spesifik domainler belirtin
-    methods: ["GET", "POST"]
-  }
+    origin: "*",
+    methods: ["GET", "POST"],
+    credentials: true
+  },
+  transports: ['websocket', 'polling'],
+  pingTimeout: 60000,
+  pingInterval: 25000
 });
 
 // Middleware'ler
@@ -41,43 +45,24 @@ app.set('views', path.join(__dirname, 'views'));
 // Kullanıcı yönetimi için Map
 const activeUsers = new Map();
 
-// XSS koruma fonksiyonu
 const sanitizeInput = (input) => {
   if (typeof input !== 'string') return '';
   return input.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 };
 
-// Kullanıcı listesini güncelleme fonksiyonu
-const updateUserList = () => {
-  const users = Array.from(activeUsers.values());
-  io.emit('user list', users);
-};
-
-// Renk üretme fonksiyonu
 const generateUserColor = (username) => {
-    const colors = [
-        '#dcf8c6', // Açık yeşil (varsayılan WhatsApp)
-        '#ffe6cc', // Açık turuncu
-        '#e6e6fa', // Lavanta
-        '#f0fff0', // Bal rengi
-        '#e6f7ff', // Açık mavi
-        '#fff0f5', // Pembe
-        '#f0f8ff', // Alice mavisi
-        '#fffacd'  // Limonlu
-    ];
-    
-    // Kullanıcı adının karakter kodlarını toplayarak deterministik bir renk seçelim
-    let hash = 0;
-    for (let i = 0; i < username.length; i++) {
-        hash = username.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return colors[Math.abs(hash) % colors.length];
+  const colors = ['#dcf8c6', '#ffe6cc', '#e6e6fa', '#f0fff0', '#e6f7ff', '#fff0f5', '#f0f8ff', '#fffacd'];
+  let hash = 0;
+  for (let i = 0; i < username.length; i++) {
+    hash = username.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
 };
 
+// Socket.io Bağlantı Yönetimi
 io.on('connection', (socket) => {
   console.log(`Yeni bağlantı: ${socket.id}`);
 
-  // Kullanıcı girişi
   socket.on('new user', (username) => {
     if (!username || typeof username !== 'string') {
       return socket.emit('error', 'Geçersiz kullanıcı adı');
@@ -91,44 +76,35 @@ io.on('connection', (socket) => {
       username: cleanUsername,
       typing: false,
       lastSeen: new Date(),
-      color: generateUserColor(cleanUsername) // Renk ekliyoruz
+      color: generateUserColor(cleanUsername)
     });
 
-    updateUserList();
-    console.log(`Kullanıcı giriş yaptı: ${cleanUsername}`);
+    // Tüm kullanıcı listesini güncelle
+    io.emit('user list', Array.from(activeUsers.values()));
+
+    // Hoş geldin mesajı
     const welcomeMessages = [
-        `🌟 ${cleanUsername} sohbete katıldı, partimiz şimdi daha renkli!`,
-        `🚨 DİKKAT! ${cleanUsername} sohbetin tadını kaçırmaya geldi! 😂`,
-        `😎 ${cleanUsername} geldi! Artık bu sohbet resmen VIP oldu`,
-        `✨ ${cleanUsername} aramıza katıldı, hadi bi' şeyler karıştıralım!`,
-        `🚀 ${cleanUsername} uzay gemisini yanaştırdı, hoş geldin kaptan!`,
-        `🔮 ${cleanUsername} sihirli değneğiyle belirdi! Abracadabra!`,
-        `🎧 ${cleanUsername} mix'e katıldı, volume up!`,
-        `📺 ${cleanUsername} dizimize yeni sezon olarak katılıyor! IMDB: 10/10`,
-        `🎯 ${cleanUsername} oyuna bağlandı! +100 Charisma, +50 Chat Skill`,
-        `☢️ DURUN! ${cleanUsername} sohbet kıyametini önlemek için aramızda!`,
-        `👽 ${cleanUsername} gezegenlerarası sohbet için dünyaya iniş yaptı!`,
-        `🚔 ${cleanUsername} sohbet suçundan içeri alındı! Tahliye yok!`,
-        `🔬 Deney sonucu: ${cleanUsername} elementi sohbet kimyasını patlattı!`,
-        `🎉🎊 ${cleanUsername} çay partimize katıldı! 🧁☕️🎈`
+      `🌟 ${cleanUsername} sohbete katıldı!`,
+      `🚀 ${cleanUsername} aramıza geldi!`,
+      `🎉 ${cleanUsername} partiye katıldı!`
     ];
-    
     const randomWelcome = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
-    // Hoş geldin mesajı gönder
-    socket.emit('system message', {
+    
+    io.emit('system message', {
       type: 'welcome',
       text: randomWelcome
     });
   });
 
-  // Mesaj alma
+  // Mesaj İletimi (DÜZELTİLDİ)
   socket.on('chat message', (data) => {
     const user = activeUsers.get(socket.id);
-    if (!user || !data || !data.message) return;
+    if (!user || !data?.message) return;
 
-    const cleanMessage = sanitizeInput(data.message.toString());
-    if (!cleanMessage.trim()) return;
+    const cleanMessage = sanitizeInput(data.message.toString().trim());
+    if (!cleanMessage) return;
 
+    // Tüm istemcilere mesajı ilet (io.emit kullanıyoruz)
     io.emit('chat message', {
       userId: user.id,
       username: user.username,
@@ -137,55 +113,34 @@ io.on('connection', (socket) => {
       color: user.color
     });
 
+    // Yazma durumunu sıfırla
     if (user.typing) {
       user.typing = false;
       socket.broadcast.emit('stop typing', user.username);
     }
   });
 
-  // Yazma durumu
+  // Diğer olaylar...
   socket.on('typing', () => {
     const user = activeUsers.get(socket.id);
     if (user && !user.typing) {
       user.typing = true;
-      user.lastSeen = new Date();
       socket.broadcast.emit('typing', user.username);
     }
   });
 
-  socket.on('stop typing', () => {
-    const user = activeUsers.get(socket.id);
-    if (user && user.typing) {
-      user.typing = false;
-      user.lastSeen = new Date();
-      socket.broadcast.emit('stop typing', user.username);
-    }
-  });
-
-  // Bağlantı kesildiğinde
   socket.on('disconnect', () => {
     const user = activeUsers.get(socket.id);
     if (user) {
-      console.log(`Kullanıcı ayrıldı: ${user.username}`);
       activeUsers.delete(socket.id);
-      updateUserList();
-      
-      // Çıkış mesajı gönder
+      io.emit('user list', Array.from(activeUsers.values()));
       io.emit('system message', {
         type: 'left',
-        text: `${user.username} sohbetten ayrıldı`
+        text: `${user.username} ayrıldı`
       });
     }
   });
-
-  // Ping kontrolü
-  socket.on('ping', (cb) => {
-    if (typeof cb === 'function') {
-      cb();
-    }
-  });
 });
-
 
 // Routes
 app.use("*", checkUser);
@@ -193,18 +148,17 @@ app.use("/", PageRoute);
 app.use("/calismalar", PhotoRoute);
 app.use("/users", userRoutes);
 
-// 404 Hatası
+// Hata Yönetimi
 app.use((req, res) => {
-    res.status(404).render('404');
+  res.status(404).render('404');
 });
 
-// Hata yönetimi
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Bir hata oluştu!');
+  console.error(err.stack);
+  res.status(500).send('Server error!');
 });
 
 // Sunucuyu başlat
 server.listen(PORT, () => {
-    console.log(`Sunucu ${PORT} portunda çalışıyor...`);
+  console.log(`Sunucu ${PORT} portunda çalışıyor...`);
 });
