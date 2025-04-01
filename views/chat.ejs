@@ -184,10 +184,42 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #a8a8a8;
         }
+
+           /* Medya Görüntüleme Stilleri */
+    .media-container {
+        max-width: 100%;
+        margin-bottom: 8px;
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    
+    .media-container:hover {
+        transform: scale(1.02);
+    }
+    
+    .img-preview {
+        max-width: 100%;
+        max-height: 300px;
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .video-preview {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 8px;
+        background: #000;
+    }
         /* Mobile cihazlarda çevrimiçi yazısını gizle */
   @media (max-width: 768px) {
     .user .text-muted.small {
       display: none !important;
+    }
+    .img-preview, .video-preview {
+        max-height: 200px;
     }
     
     /* Kullanıcı listesinde avatar boyutunu küçült */
@@ -447,33 +479,76 @@ $(document).ready(function() {
      socket.on('chat message', (data) => {
         let content = '';
         
+        // Dosya varsa uygun şekilde render et
         if (data.file) {
-            if (data.file.type === 'image') {
-                content = `<img src="${data.file.url}" class="img-fluid rounded mb-2" style="max-height: 200px;">`;
-            } else if (data.file.type === 'video') {
+            const fileType = data.file.type || data.file.url.split('.').pop().toLowerCase();
+            
+            // Resim/GIF için optimize edilmiş görüntüleme
+            if (fileType.includes('image')) {
                 content = `
-                    <video controls class="rounded mb-2" style="max-height: 200px; max-width: 100%;">
+                <div class="media-container">
+                    <img src="${data.file.url}" 
+                         class="img-preview" 
+                         alt="Gönderilen resim"
+                         onclick="openMediaModal('${data.file.url}', 'image')">
+                </div>`;
+            }
+            // Video için optimize oynatıcı
+            else if (fileType.includes('video')) {
+                content = `
+                <div class="media-container">
+                    <video controls class="video-preview" onclick="event.stopPropagation()">
                         <source src="${data.file.url}" type="video/mp4">
+                        Tarayıcınız video oynatmayı desteklemiyor.
                     </video>
-                `;
-            } else {
+                </div>`;
+            }
+            // Diğer dosyalar
+            else {
                 content = `
-                    <div class="file-message bg-light p-2 rounded mb-2">
-                        <a href="${data.file.url}" target="_blank" class="text-decoration-none">
-                            <i class="fas fa-file-download me-2"></i>Dosyayı indir
-                        </a>
-                    </div>
-                `;
+                <div class="file-message bg-light p-2 rounded mb-2">
+                    <a href="${data.file.url}" target="_blank" class="text-decoration-none">
+                        <i class="fas fa-file-download me-2"></i>Dosyayı indir
+                    </a>
+                </div>`;
             }
         }
         
+        // Metin mesajı varsa ekle
         if (data.message) {
-            content += `<div class="message-text">${data.message}</div>`;
+            content += `<div class="message-text mt-2">${data.message}</div>`;
         }
-
+    
         addMessage(data.username, content, data.userId === socket.id, data.timestamp, data.color);
-        $('#typingIndicator').text('');
     });
+
+    // Büyük görüntüleme için modal fonksiyonu
+function openMediaModal(url, type) {
+    const modalContent = type === 'image' 
+        ? `<img src="${url}" class="img-fluid" style="max-height: 80vh;">`
+        : `<video controls autoplay class="w-100"><source src="${url}"></video>`;
+    
+    const modal = `
+    <div class="modal fade" id="mediaModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-body text-center p-0">
+                    ${modalContent}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                    <a href="${url}" download class="btn btn-primary">
+                        <i class="fas fa-download me-1"></i> İndir
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>`;
+    
+    $('body').append(modal);
+    $('#mediaModal').modal('show');
+    $('#mediaModal').on('hidden.bs.modal', () => $('#mediaModal').remove());
+}
 
 
     socket.on('typing', function(typingUser) {
