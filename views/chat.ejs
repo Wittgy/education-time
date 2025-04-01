@@ -1,205 +1,281 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Uygulaması</title>
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const socket = io();
-            let username;
-    
-            // Kullanıcıdan adını iste
-            while (!username || username.trim() === "") {
-                username = prompt("Lütfen bir kullanıcı adı girin:");
-            }
+    <meta charset="utf-8">
+    <title>You Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Önceki CSS stilleri aynen korundu, sadece eklemeler yapıldı */
+        .sent {
+            align-self: flex-end;
+            background-color: #dcf8c6; /* Varsayılan gönderen rengi */  
+        }
+        .received {
+            align-self: flex-start;
+            background-color: #ffffff; /* Varsayılan alıcı rengi */
+        }
+        .system-message {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            margin: 10px 0;
+            padding: 5px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+        .message-sender {
+            font-weight: bold;
+            font-size: 0.8em;
+            margin-bottom: 3px;
+            color: #555;
+            margin-right: 15px;
+            margin-top: 5px;
+        }
+        .sent .message-sender {
+            text-align: right;
             
-            socket.emit("new user", username); // Kullanıcıyı sunucuya bildir
-    
-            const messageForm = document.getElementById("chatForm");
-            const messageInput = document.getElementById("msgInput");
-            const messageList = document.getElementById("messages");
-            const userList = document.getElementById("userList");
-            const typingIndicator = document.getElementById("typingIndicator");
-    
-            messageForm.addEventListener("submit", (e) => {
-                e.preventDefault();
-                let msg = messageInput.value.trim();
-                if (msg) {
-                    socket.emit("chat message", { message: msg });
-                    messageInput.value = "";
-                    socket.emit("stop typing"); 
-                }
-            });
-    
-            messageInput.addEventListener("input", () => {
-                if (messageInput.value.trim() !== "") {
-                    socket.emit("typing"); 
-                } else {
-                    socket.emit("stop typing"); 
-                }
-            });
-    
-            // ✨ Gelen mesajları ekrana yazdır
-            socket.on("chat message", (data) => {
-                let li = document.createElement("li");
-                li.innerHTML = `<strong>${data.user}:</strong> ${data.message}`;
-                messageList.appendChild(li);
-            });
-    
-            // ✨ "Yazıyor..." mesajını göster
-            socket.on("typing", (user) => {
-                typingIndicator.innerText = `${user} yazıyor...`;
-            });
-    
-            // ✨ "Yazıyor..." mesajını kaldır
-            socket.on("stop typing", () => {
-                typingIndicator.innerText = "";
-            });
-    
-            // ✨ Kullanıcı listesini güncelle
-            socket.on("user list", (users) => {
-                userList.innerHTML = "";
-                users.forEach(user => {
-                    let li = document.createElement("li");
-                    li.textContent = user;
-                    userList.appendChild(li);
-                });
-            });
-        });
-    </script>
-    
-    
-    
+        }
+        .received .message-sender {
+            text-align: left;
+        }
+        .color-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .typing {
+            background-color: #ffcc00 !important;
+        }
+        
+        .status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .status.online {
+            background-color: #4caf50;
+            position: absolute;
+        }
+        
+        .status.typing {
+            background-color: #ffcc00;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
 </head>
 <body>
-    <h1>You Chat</h1>
-
-    <div class="chat-container">
-        <div class="user-list">
-            <h3>Online Kullanıcılar</h3>
-            <ul id="userList"></ul>
-
-            <p id="typingIndicator" style="font-style: italic; color: gray;"></p>
-
-        </div>
-        
-        <div class="chat-box">
-            <ul id="messages"></ul>
-            <p id="typingIndicator" style="font-style: italic; color: gray;"></p>
-            <form id="chatForm">
-                <input id="msgInput" autocomplete="off">
-                <button type="submit">Gönder</button>
-            </form>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="chat-container d-flex">
+                <div class="user-list col-md-4 p-0">
+                    <div class="p-3 bg-primary text-white d-flex justify-content-between">
+                        <h5 class="mb-0">Üyeler</h5>
+                        <span id="onlineCount" class="badge bg-light text-dark">0</span>
+                    </div>
+                    <div id="userList"></div>
+                </div>
+                
+                <div class="chat-area col-md-8 p-0 d-flex flex-column">
+                    <div class="p-3 bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0" id="chatTitle">Genel Sohbet</h5>
+                        <div class="typing-indicator" id="typingIndicator"></div>
+                    </div>
+                    
+                    <div class="messages" id="messages"></div>
+                    
+                    <div class="message-input">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="messageInput" placeholder="Bir mesaj yazın...">
+                            <button class="btn btn-primary" id="sendButton">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+</div>
 
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Oswald:wght@200..700&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Splash&display=swap');
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        h1 {
-            font-family: 'Splash', cursive;
-            color: #8A0707;
-        }
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-        .chat-container {
-            display: flex;
-            width: 80%;
-            margin-top: 20px;
-        }
+<script>
+$(document).ready(function() {
+    const socket = io();
+    let username = '';
+    let isConnected = false;
 
-        .user-list {
-            width: 20%;
-            padding: 10px;
-            border-right: 2px solid #ddd;
+    // Kullanıcı adını al
+    function getUsername() {
+        username = localStorage.getItem('chat-username') || '';
+        while (!username || username.trim() === '') {
+            username = prompt("Lütfen kullanıcı adınızı girin:") || '';
+            if (username.trim()) {
+                localStorage.setItem('chat-username', username.trim());
+            }
         }
+        return username.trim();
+    }
 
-        .chat-box {
-            width: 80%;
-            padding: 10px;
-        }
+    // Bağlantıyı başlat
+    function connect() {
+        if (isConnected) return;
+        
+        username = getUsername();
+        socket.emit('new user', username);
+        isConnected = true;
+        
+        // Bağlantı durumu kontrolü
+        setInterval(() => {
+            socket.emit('ping', () => {
+                console.log('Bağlantı aktif');
+            });
+        }, 30000);
+    }
 
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-
-        li {
-            padding: 5px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        form {
-            display: flex;
-            margin-top: 10px;
-        }
-
-        input {
-            flex: 1;
-            padding: 5px;
-        }
-
-        button {
-            padding: 5px 10px;
-            margin-left: 5px;
-        }
-
-        /* Tablet (Ekran genişliği 1024px veya daha küçükse) */
-    @media (max-width: 1024px) {
-        .chat-container {
-            width: 90%;
-        }
-
-        .user-list {
-            width: 25%;
-        }
-
-        .chat-box {
-            width: 75%;
+    // Mesaj gönderme
+    function sendMessage() {
+        const message = $('#messageInput').val().trim();
+        if (message !== '' && isConnected) {
+            socket.emit('chat message', { message: message });
+            $('#messageInput').val('');
+            socket.emit('stop typing');
         }
     }
 
-    /* Telefon (Ekran genişliği 600px veya daha küçükse) */
-    @media (max-width: 600px) {
-        .chat-container {
-            flex-direction: column;
-            width: 100%;
-        }
+    // Yazma durumu
+    let typing = false;
+    let typingTimeout;
     
-        .user-list {
-            width: 100%;
-            border-right: none;
-            border-bottom: 2px solid #ddd;
-            text-align: center;
+    $('#messageInput').on('input', function() {
+        if (!isConnected) return;
+        
+        if (!typing) {
+            typing = true;
+            socket.emit('typing');
         }
-    
-        .chat-box {
-            width: 100%;
+        
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+            typing = false;
+            socket.emit('stop typing');
+        }, 2000);
+    });
+
+    // Enter tuşu ile gönder
+    $('#messageInput').keypress(function(e) {
+        if (e.which === 13) {
+            sendMessage();
         }
-    
-        form {
-            flex-direction: column;
-            align-items: center; /* Input ve butonu ortalar */
-            width: 100%;
+    });
+
+    $('#sendButton').click(sendMessage);
+
+    // Socket.io olayları
+    socket.on('user list', function(users) {
+        $('#userList').empty();
+        $('#onlineCount').text(users.length);
+        
+        users.forEach(user => {
+            const isCurrentUser = user.username === username;
+            const typingText = user.typing ? ' (yazıyor...)' : '';
+            
+            $('#userList').append(`
+                <div class="user ${isCurrentUser ? 'active' : ''}" data-user-id="${user.id}">
+                    <div class="d-flex align-items-center">
+                        <div class="color-indicator" style="background-color: ${user.color || '#cccccc'}; 
+                            width: 12px; height: 12px; border-radius: 50%; margin-right: 8px;"></div>
+                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=random" 
+                             class="avatar me-3" alt="${user.username}">
+                        <div class="flex-grow-1" style="margin-right: 5px; margin-left: -10px;">
+                            <strong>${user.username}</strong>
+                            <div class="text-muted small">${typingText || 'Çevrimiçi'}</div>
+                        </div>
+                        <span class="status ${user.typing ? 'typing' : 'online'}"></span>
+                    </div>
+                </div>
+            `);
+        });
+    });
+
+    socket.on('chat message', function(data) {
+        addMessage(data.username, data.message, data.username === username, data.timestamp, data.color);
+        $('#typingIndicator').text('');
+    });
+
+    socket.on('typing', function(typingUser) {
+        if (typingUser !== username) {
+            $('#typingIndicator').text(`${typingUser} yazıyor...`);
         }
-    
-        input, button {
-            width: 80%;
-            margin-bottom: 5px;
-            box-sizing: border-box; /* Padding ve border genişliği etkilemesin */
-        }
-    
-        button {
-            margin-left: 0;
-        }
+    });
+
+    socket.on('stop typing', function() {
+        $('#typingIndicator').text('');
+    });
+
+    socket.on('system message', function(data) {
+        addSystemMessage(data.text, data.type);
+    });
+
+    socket.on('connect_error', (error) => {
+        console.error('Bağlantı hatası:', error);
+        addSystemMessage('Sunucuya bağlanılamıyor. Yeniden deneyin...', 'error');
+    });
+
+    // Mesaj ekleme fonksiyonları
+    function addMessage(sender, message, isSent, timestamp) {
+        const time = timestamp ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 
+                                new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        // Kendi mesajımızsa varsayılan rengi kullan, diğerleri için atanmış rengi kullan
+        const messageColor = isSent ? '#dcf8c6' : (color || '#ffffff');
+
+        $('#messages').append(`
+        <div class="message ${isSent ? 'sent' : 'received'}" 
+             style="background-color: ${messageColor}">
+            <div class="message-sender">${sender}</div>
+            <div class="message-content" style="margin-left: 7px;">${message}</div>
+            <div class="message-time" style="padding-left: 5px;">${time}</div>
+        </div>
+    `);
+        
+        scrollToBottom();
     }
-    
-    </style>
+
+    function addSystemMessage(text, type) {
+        $('#messages').append(`
+            <div class="system-message ${type}">
+                ${text}
+            </div>
+        `);
+        scrollToBottom();
+    }
+
+    function scrollToBottom() {
+        const messages = $('#messages')[0];
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    // Sayfa yüklendiğinde bağlan
+    connect();
+});
+</script>
 </body>
 </html>
