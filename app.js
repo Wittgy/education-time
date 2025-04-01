@@ -63,6 +63,13 @@ const generateUserColor = (username) => {
 io.on('connection', (socket) => {
   console.log(`Yeni bağlantı: ${socket.id}`);
 
+  // YENI EKLENEN KISIM (Başlangıç)
+  socket.on('get user list', () => {
+    console.log('Kullanıcı listesi talep edildi');
+    socket.emit('user list', Array.from(activeUsers.values()));
+  });
+  // YENI EKLENEN KISIM (Bitiş)
+
   socket.on('new user', (username) => {
     if (!username || typeof username !== 'string') {
       return socket.emit('error', 'Geçersiz kullanıcı adı');

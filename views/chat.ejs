@@ -180,6 +180,23 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #a8a8a8;
         }
+        /* Mobile cihazlarda çevrimiçi yazısını gizle */
+  @media (max-width: 768px) {
+    .user .text-muted.small {
+      display: none !important;
+    }
+    
+    /* Kullanıcı listesinde avatar boyutunu küçült */
+    .user .avatar {
+      width: 32px;
+      height: 32px;
+    }
+    
+    /* Kullanıcı adı font boyutunu küçült */
+    .user strong {
+      font-size: 0.9em;
+    }
+  }
     </style>
 </head>
 <body>
@@ -308,26 +325,36 @@ $(document).ready(function() {
         $('#userList').empty();
         $('#onlineCount').text(users.length);
         
+        const isMobile = window.innerWidth <= 768;
+        
         users.forEach(user => {
-            const isCurrentUser = user.username === username;
-            const typingText = user.typing ? ' (yazıyor...)' : '';
-            
-            $('#userList').append(`
-                <div class="user ${isCurrentUser ? 'active' : ''}" data-user-id="${user.id}">
-                    <div class="d-flex align-items-center">
-                        <div class="color-indicator" style="background-color: ${user.color || '#cccccc'};"></div>
-                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=random" 
-                             class="avatar me-3" alt="${user.username}">
-                        <div class="flex-grow-1">
-                            <strong>${user.username}</strong>
-                            <div class="text-muted small">${typingText || 'Çevrimiçi'}</div>
-                        </div>
-                        <span class="status ${user.typing ? 'typing' : 'online'}"></span>
-                    </div>
+          const isCurrentUser = user.username === username;
+          const typingText = user.typing ? ' (yazıyor...)' : '';
+          
+          $('#userList').append(`
+            <div class="user ${isCurrentUser ? 'active' : ''}" data-user-id="${user.id}">
+              <div class="d-flex align-items-center">
+                <div class="color-indicator" style="background-color: ${user.color || '#cccccc'};"></div>
+                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=random" 
+                     class="avatar me-3" alt="${user.username}">
+                <div class="flex-grow-1">
+                  <strong>${user.username}</strong>
+                  ${!isMobile ? `<div class="text-muted small">${typingText || 'Çevrimiçi'}</div>` : ''}
                 </div>
-            `);
+                <span class="status ${user.typing ? 'typing' : 'online'}"></span>
+              </div>
+            </div>
+          `);
         });
-    });
+      });
+      
+      // Ekran boyutu değiştiğinde yenile
+      $(window).resize(function() {
+        if(this.resizeTO) clearTimeout(this.resizeTO);
+        this.resizeTO = setTimeout(function() {
+          socket.emit('get user list');
+        }, 300);
+      });
 
     socket.on('chat message', function(data) {
         console.log('Gelen mesaj:', data);
