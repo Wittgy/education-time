@@ -213,6 +213,73 @@
         border-radius: 8px;
         background: #000;
     }
+
+    .info-icon {
+        display: inline-flex;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-family: Arial;
+        font-size: 20px;
+        cursor: pointer;
+        transition: transform 0.2s;
+        position: absolute;
+        bottom:95px;
+        left:110px;
+    }
+    .info-icon:hover {
+        transform: scale(1.1);
+    }
+
+    /* MODAL STİLLERİ */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 1000;
+    }
+    
+    .modal.acik {
+        opacity: 1;
+    }
+    
+    .modal-icerik {
+        background: white;
+        margin: 10% auto;
+        padding: 20px;
+        width: 80%;
+        max-width: 500px;
+        border-radius: 8px;
+        transform: translateY(-50px);
+        transition: transform 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    
+    .modal.acik .modal-icerik {
+        transform: translateY(0);
+    }
+    
+    .kapat {
+        float: right;
+        cursor: pointer;
+        font-size: 24px;
+        font-weight: bold;
+        color: #aaa;
+    }
+    
+    .kapat:hover {
+        color: #333;
+    }
+
         /* Mobile cihazlarda çevrimiçi yazısını gizle */
   @media (max-width: 768px) {
     .user .text-muted.small {
@@ -221,7 +288,12 @@
     .img-preview, .video-preview {
         max-height: 200px;
     }
-    
+    .info-icon {
+        position: absolute;
+        top:25px;
+        left: 320px;
+        z-index: 1;
+    }
     .flex-grow-1 {
         margin-left: -10px;
         margin-right: 15px;
@@ -260,6 +332,14 @@
                     <div class="chat-area col-md-8 p-0 d-flex flex-column">
                         <div class="p-3 bg-primary text-white d-flex justify-content-between align-items-center">
                             <h5 class="mb-0" id="chatTitle">Genel Sohbet</h5>
+                             <!-- Bilgi İconu -->
+    <div class="info-icon" id="modalAc" style="
+    background: linear-gradient(135deg, #1e88e5, #0d47a1);
+    color: white;
+    box-shadow: 0 3px 10px rgba(30, 136, 229, 0.4);
+">
+    i
+</div>
                             <div class="typing-indicator" id="typingIndicator"></div>
                         </div>
                         
@@ -286,7 +366,23 @@
             </div>
         </div>
     </div>
-
+    <div class="modal" id="benimModal">
+        <div class="modal-icerik">
+            <span class="kapat">&times;</span>
+            <h2><i class="fas fa-info-circle"></i> Önemli Bilgi</h2>
+            <p>Bu sohbet uygulaması <strong>konuşmaları kaydetmemektedir</strong>. Lütfen dikkat:</p>
+            
+            <ul style="margin-left: 20px; line-height: 1.6;">
+                <li>Gönderdiğiniz tüm mesajlar <span style="color: #e53935;"><strong>kalıcı olarak saklanmaz</strong></span></li>
+                <li>Çıkış yaptığınızda <strong>tüm sohbet geçmişi otomatik silinir</strong></li>
+                <li>Önemli bilgileri <strong>başka bir yerde kaydetmenizi</strong> öneririz</li>
+            </ul>
+            
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #2196F3;">
+                <p style="margin: 0;"><i class="fas fa-shield-alt"></i> <strong>Gizlilik:</strong> Bu uygulama anonim kullanım için tasarlanmıştır. Kimse mesajlarınızı göremez.</p>
+            </div>
+        </div>
+    </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -586,6 +682,35 @@ $(document).ready(function() {
 
     // Sayfa yüklendiğinde bağlan
     connect();
+});
+
+//====================MODAL SCRIPT=============
+// MODAL AÇMA
+document.getElementById("modalAc").addEventListener("click", function() {
+    const modal = document.getElementById("benimModal");
+    modal.style.display = "block";
+    setTimeout(() => {
+        modal.classList.add("acik");
+    }, 10);
+});
+
+// MODAL KAPATMA FONKSİYONU
+function modalKapat() {
+    const modal = document.getElementById("benimModal");
+    modal.classList.remove("acik");
+    setTimeout(() => {
+        modal.style.display = "none";
+    }, 300);
+}
+
+// KAPAT BUTONU
+document.querySelector(".kapat").addEventListener("click", modalKapat);
+
+// DIŞARI TIKLAYINCA KAPAT
+window.addEventListener("click", function(event) {
+    if (event.target == document.getElementById("benimModal")) {
+        modalKapat();
+    }
 });
 </script>
 </body>
