@@ -306,6 +306,24 @@
 
         /* Mobile cihazlarda çevrimiçi yazısını gizle */
   @media (max-width: 768px) {
+        /* Progress bar mobil stil ayarları */
+    .progress-container {
+        margin-top: 8px;
+        height: 5px; /* Mobilde daha ince */
+    }
+    .progress-container {
+        margin-left: 10px;
+        margin-right: 10px;
+        height: 4px; /* Çok küçük ekranlarda */
+    }
+    
+    .progress-text {
+        display: none; /* Mobilde yüzde yazısını gizle (opsiyonel) */
+    }
+    .progress-text {
+        font-size: 10px; /* Mobilde daha küçük yazı */
+    }
+
     .user .text-muted.small {
       display: none !important;
     }
@@ -372,7 +390,7 @@
                         <!-- DOSYA YÜKLEME EKLENTİSİ (Değişen tek kısım) -->
                         <div class="message-input">
                             <form id="messageForm" enctype="multipart/form-data">
-                                <input type="file" id="fileInput" accept="image/*,video/*,.pdf,.gif" hidden>
+                                <input type="file" id="fileInput" accept="image/*,video/*,.pdf,.gif" capture="environment" hidden>
                                 <div class="input-group">
                                     <button type="button" id="attachBtn" class="btn btn-secondary">
                                         <i class="fas fa-paperclip"></i>
@@ -500,6 +518,7 @@ socket.on('upload-progress', (data) => {
         const message = $('#messageInput').val().trim();
         const fileInput = $('#fileInput')[0];
         
+        
         if (fileInput.files.length > 0) {
             const file = fileInput.files[0];
             
@@ -529,6 +548,34 @@ socket.on('upload-progress', (data) => {
         $('#messageInput').val('');
         socket.emit('stop typing');
     }
+
+    $(document).on('change', '#fileInput', function() {
+        const isMobile = window.innerWidth <= 768;
+        const file = this.files[0];
+        
+        if (isMobile) {
+            // Mobilde sadece dosya adını göster
+            $('#filePreview').html(`
+                <div class="alert alert-light p-1 small">
+                    <i class="fas fa-file me-1"></i>
+                    ${file.name.substring(0, 20)}...
+                </div>
+            `);
+        } else {
+            // Normal görünüm
+            $('#filePreview').html(`
+                <div class="alert alert-light d-flex justify-content-between align-items-center p-2">
+                    <div>
+                        <i class="fas fa-${file.type.includes('image') ? 'image' : 'file'} me-2"></i>
+                        ${file.name} (${(file.size / 1024).toFixed(1)}KB)
+                    </div>
+                    <button class="btn btn-sm btn-danger" id="removeFile">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `);
+        }
+    });
 
     // DOSYA ÖNİZLEME (Yeni eklendi)
     $('#attachBtn').click(() => $('#fileInput').click());
