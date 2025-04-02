@@ -359,6 +359,59 @@
       font-size: 0.9em;
     }
   }
+
+  /* MOBILE KULLANICI LİSTESİ STİLİ - ÜSTÜNE YAZ */
+@media (max-width: 767.98px) {
+    #userListSidebar {
+      display: block !important;  
+      position: fixed !important;
+      top: 0 !important;
+      left: -100% !important;
+      width: 85% !important;
+      height: 100vh !important;
+      background: white !important;
+      z-index: 2000 !important; /* Modal'dan (1000) daha yüksek */
+      transition: left 0.4s ease !important;
+      overflow-y: auto;
+      box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+    }
+  
+    #userListSidebar.show {
+      left: 0 !important;
+    }
+  
+    .sidebar-overlay {
+      display: none;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      background: rgba(0,0,0,0.5) !important;
+      z-index: 1999 !important; /* Liste altında */
+      cursor: pointer;
+    }
+  
+    body.sidebar-open {
+      overflow: hidden;
+    }
+    
+    /* Buton pozisyonu */
+    #toggleUserList {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 100;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+
     </style>
 </head>
 <body>
@@ -366,8 +419,8 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="chat-container d-flex">
-                    <!-- Kullanıcı listesi aynı kaldı -->
-                    <div class="user-list col-md-4 p-0">
+                    <!-- Kullanıcı listesi (Mobilde gizli) -->
+                    <div class="user-list col-md-4 p-0 d-none d-md-block" id="userListSidebar">
                         <div class="p-3 bg-primary text-white d-flex justify-content-between">
                             <h5 class="mb-0">Üyeler</h5>
                             <span id="onlineCount" class="badge bg-light text-dark">0</span>
@@ -375,24 +428,33 @@
                         <div id="userList"></div>
                     </div>
                     
-                    <!-- Sohbet alanı -->
-                    <div class="chat-area col-md-8 p-0 d-flex flex-column">
+                    <!-- Sohbet alanı (Mobilde tam genişlik) -->
+                    <div class="chat-area col-12 col-md-8 p-0 d-flex flex-column">
                         <div class="p-3 bg-primary text-white d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0" id="chatTitle">Genel Sohbet</h5>
-                             <!-- Bilgi İconu -->
-    <div class="info-icon" id="modalAc" style="
-    background: linear-gradient(135deg, #1e88e5, #0d47a1);
-    color: white;
-    box-shadow: 0 3px 10px rgba(30, 136, 229, 0.4);
-">
-    i
-</div>
+                            <!-- Mobilde kullanıcı listesi toggle butonu -->
+                            <button id="toggleUserList" class="btn btn-primary d-md-none" style="
+                                position: fixed;
+                                bottom: 20px;
+                                right: 20px;
+                                z-index: 100;
+                                width: 50px;
+                                height: 50px;
+                                border-radius: 50%;
+                            ">
+                                <i class="fas fa-users"></i>
+                            </button>
+                            <h5 class="mb-0 flex-grow-1" id="chatTitle">Genel Sohbet</h5>
+                            <div class="info-icon" id="modalAc" style="
+                                background: linear-gradient(135deg, #1e88e5, #0d47a1);
+                                color: white;
+                                box-shadow: 0 3px 10px rgba(30, 136, 229, 0.4);">
+                                i
+                            </div>
                             <div class="typing-indicator" id="typingIndicator"></div>
                         </div>
                         
                         <div class="messages" id="messages"></div>
                         
-                        <!-- DOSYA YÜKLEME EKLENTİSİ (Değişen tek kısım) -->
                         <div class="message-input">
                             <form id="messageForm" enctype="multipart/form-data">
                                 <input type="file" id="fileInput" accept="image/*,video/*,.pdf,.gif" capture="environment" hidden>
@@ -417,6 +479,8 @@
             </div>
         </div>
     </div>
+    
+    <!-- Modal içeriği aynı kalıyor -->
     <div class="modal" id="benimModal">
         <div class="modal-icerik">
             <span class="kapat">&times;</span>
@@ -815,6 +879,41 @@ window.addEventListener("click", function(event) {
         modalKapat();
     }
 });
+
+// ÜYE TOGGLE KODU
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = $('#toggleUserList');
+    const userList = $('#userListSidebar');
+    
+    // Overlay oluştur
+    const overlay = $('<div class="sidebar-overlay"></div>');
+    $('body').append(overlay);
+  
+    toggleBtn.on('click', function() {
+      userList.toggleClass('show');
+      overlay.css('display', userList.hasClass('show') ? 'block' : 'none');
+      $('body').toggleClass('sidebar-open');
+      
+      // Debug
+      console.log("Toggle Durumu:", {
+        showClass: userList.hasClass('show'),
+        overlayDisplay: overlay.css('display')
+      });
+    });
+  
+    overlay.on('click', function() {
+      userList.removeClass('show');
+      overlay.css('display', 'none');
+      $('body').removeClass('sidebar-open');
+    });
+  
+    $(document).on('keydown', function(e) {
+      if (e.key === 'Escape') {
+        userList.removeClass('show');
+        overlay.css('display', 'none');
+      }
+    });
+  });
 </script>
 </body>
 </html>
