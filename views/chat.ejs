@@ -529,33 +529,6 @@ $(document).ready(function() {
         addMessage(data.username, content, data.userId === socket.id, data.timestamp, data.color);
     });
 
-    // Büyük görüntüleme için modal fonksiyonu
-function openMediaModal(url, type) {
-    const modalContent = type === 'image' 
-        ? `<img src="${url}" class="img-fluid" style="max-height: 80vh;">`
-        : `<video controls autoplay class="w-100"><source src="${url}"></video>`;
-    
-    const modal = `
-    <div class="modal fade" id="mediaModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-body text-center p-0">
-                    ${modalContent}
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
-                    <a href="${url}" download class="btn btn-primary">
-                        <i class="fas fa-download me-1"></i> İndir
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>`;
-    
-    $('body').append(modal);
-    $('#mediaModal').modal('show');
-    $('#mediaModal').on('hidden.bs.modal', () => $('#mediaModal').remove());
-}
 
 
     socket.on('typing', function(typingUser) {

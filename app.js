@@ -128,9 +128,21 @@ io.on('connection', (socket) => {
     io.emit('user list', Array.from(activeUsers.values()));
 
     const welcomeMessages = [
-      `🌟 ${cleanUsername} sohbete katıldı!`,
-      `🚀 ${cleanUsername} aramıza geldi!`,
-      `🎉 ${cleanUsername} partiye katıldı!`
+`🎉 ${cleanUsername} partimize katıldı, şimdi şenlik başlıyor!`,
+`🚀 ${cleanUsername} roketini fırlattı ve sohbetimize indi!`,
+`🦸 ${cleanUsername} süper kahramanımız aramızda!`,
+`🍕 ${cleanUsername} pizzasını getirdi, kim dilim ister?`,
+`👑 ${cleanUsername} tahtını kurdu, artık sohbet krallığı tam kadro!`,
+`🤔 ${cleanUsername} sohbete katıldı... Acaba kimin kafasını karıştıracak?`,
+`🍿 ${cleanUsername} geldi, hadi dram başlasın!`,
+`😎 ${cleanUsername} güneş gözlüklerini taktı, çünkü bu sohbet çok parlak!`,
+`🍌 ${cleanUsername} muz kabuğuna basmadan sohbete girdi!`,
+`🧟 ${cleanUsername} zombi modundan çıktı ve sohbete katıldı!`,
+`🎮 ${cleanUsername} oyuna bağlandı! +1 Player`,
+`🖖 ${cleanUsername} uzaydan selam getirdi! "Live long and prosper!"`,
+`🧙 "You shall not pass!"... Ama ${cleanUsername} geçti ve katıldı!`,
+`⚡ ${cleanUsername}: "Bana sormadan sohbet yapmayın!" (Flash referansı)`,
+`🦇 ${cleanUsername}: "Why so serious?"`
     ];
     const randomWelcome = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
     
