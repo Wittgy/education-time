@@ -198,10 +198,6 @@ app.use("/", PageRoute);
 app.use("/calismalar", PhotoRoute);
 app.use("/users", userRoutes);
 
-// Hata Yönetimi
-app.use((req, res) => {
-  res.status(404).render('404');
-});
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
