@@ -222,6 +222,9 @@
         max-height: 200px;
     }
     
+    .flex-grow-1 {
+        flex-grow: 0;
+      }
     /* Kullanıcı listesinde avatar boyutunu küçült */
     .user .avatar {
       width: 32px;
@@ -456,12 +459,7 @@ $(document).ready(function() {
                 <div class="color-indicator" style="background-color: ${user.color || '#cccccc'};"></div>
                 <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=random" 
                      class="avatar me-3" alt="${user.username}">
-                <div class="flex-grow-1" style="
-                @media (max-width: 768px) {
-                    margin-right: 20px;
-                    margin-left: -10px;
-                    font-size: 0.7em;"
-                }>
+                <div class="flex-grow-1">
                   <strong>${user.username}</strong>
                   ${!isMobile ? `<div class="text-muted small">${typingText || 'Çevrimiçi'}</div>` : ''}
                 </div>
