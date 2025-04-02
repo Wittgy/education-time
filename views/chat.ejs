@@ -280,6 +280,30 @@
         color: #333;
     }
 
+    /* Progress bar stili */
+.progress-container {
+    display: none;
+    margin-top: 10px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    height: 6px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50, #8BC34A);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 12px;
+    text-align: center;
+    margin-top: 3px;
+    color: #666;
+}
+
         /* Mobile cihazlarda çevrimiçi yazısını gizle */
   @media (max-width: 768px) {
     .user .text-muted.small {
@@ -360,6 +384,10 @@
                                 </div>
                             </form>
                             <div id="filePreview" class="mt-2"></div>
+                            <div class="progress-container" id="progressContainer">
+                                <div class="progress-bar" id="progressBar"></div>
+                                <div class="progress-text" id="progressText">0%</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -429,21 +457,43 @@ $(document).ready(function() {
     }
 
     // DOSYA YÜKLEME FONKSİYONU (Yeni eklendi)
-    async function uploadFile(file) {
-        const formData = new FormData();
-        formData.append('file', file);
+    // uploadFile fonksiyonunu güncelleyin
+async function uploadFile(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // Progress bar'ı göster ve sıfırla
+    $('#progressContainer').show();
+    $('#progressBar').css('width', '0%');
+    $('#progressText').text('0%');
+    
+    // Socket ID'sini header'a ekle
+    const headers = {
+      'X-Socket-ID': socket.id
+    };
+    
+    try {
+        const response = await fetch('/upload', {
+            method: 'POST',
+            body: formData,
+            headers
+        });
         
-        try {
-            const response = await fetch('/upload', {
-                method: 'POST',
-                body: formData
-            });
-            return await response.json();
-        } catch (err) {
-            console.error('Yükleme hatası:', err);
-            return null;
-        }
+        // Yükleme tamamlandığında progress bar'ı gizle
+        $('#progressContainer').hide();
+        return await response.json();
+    } catch (err) {
+        console.error('Yükleme hatası:', err);
+        $('#progressContainer').hide();
+        return null;
     }
+}
+
+// Socket.io'da progress olayını dinle
+socket.on('upload-progress', (data) => {
+    $('#progressBar').css('width', `${data.percent}%`);
+    $('#progressText').text(`${data.percent}%`);
+});
 
     // MESAJ GÖNDERME (Güncellendi)
     async function sendMessage() {
@@ -505,6 +555,7 @@ $(document).ready(function() {
     $(document).on('click', '#removeFile', () => {
         $('#fileInput').val('');
         $('#filePreview').empty();
+        $('#progressContainer').hide(); // Progress bar'ı gizle
     });
 
 

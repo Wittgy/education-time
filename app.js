@@ -46,6 +46,25 @@ const storage = new CloudinaryStorage({
   }
 });
 
+// Multer için progress raporlama middleware'i ekliyoruz
+const uploadWithProgress = (req, res, next) => {
+  let progress = 0;
+  const fileSize = req.headers['content-length'] ? parseInt(req.headers['content-length']) : 0;
+  
+  req.on('data', (chunk) => {
+    progress += chunk.length;
+    if (fileSize > 0) {
+      const percent = Math.round((progress / fileSize) * 100);
+      // Socket.io üzerinden istemciye progress bilgisini gönderiyoruz
+      if (req.socketId) {
+        io.to(req.socketId).emit('upload-progress', { percent });
+      }
+    }
+  });
+  
+  next();
+};
+
 const upload = multer({ 
   storage,
   limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
@@ -90,7 +109,11 @@ const generateUserColor = (username) => {
 };
 
 // Dosya yükleme endpoint'i
-app.post('/upload', upload.single('file'), (req, res) => {
+// Socket ID'yi almak için endpoint'i güncelliyoruz
+app.post('/upload', (req, res, next) => {
+  req.socketId = req.headers['x-socket-id']; // İstemciden socket ID'sini al
+  next();
+}, uploadWithProgress, upload.single('file'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'Dosya yüklenemedi' });
   }
@@ -107,6 +130,11 @@ io.on('connection', (socket) => {
 
   socket.on('get user list', () => {
     socket.emit('user list', Array.from(activeUsers.values()));
+  });
+
+  socket.on('register-upload', (data) => {
+    // Bu socket'in upload işlemleri için kaydını yapıyoruz
+    activeUsers.get(socket.id).uploading = true;
   });
 
   socket.on('new user', (username) => {
