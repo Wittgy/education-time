@@ -67,7 +67,7 @@ const uploadWithProgress = (req, res, next) => {
 
 const upload = multer({ 
   storage,
-  limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+  limits: { fileSize: 500 * 1024 * 1024 } // 50MB limit
 });
 
 // HTTP sunucusu ve Socket.io oluşturma
